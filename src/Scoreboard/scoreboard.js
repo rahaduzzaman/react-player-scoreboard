@@ -1,10 +1,36 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
+const Stats = (props) => {
+  var totalPlayers = props.players.length;
+  var totalPoints = props.players.reduce((total, player)=>{
+    return total += player.score;
+  },0);
+  return (
+    <table className="stats">
+      <tbody>
+        <tr>
+          <td>Players:</td>
+          <td>{totalPlayers}</td>
+        </tr>
+        <tr>
+          <td>Totalscore:</td>
+          <td>{totalPoints}</td>
+        </tr>
+      </tbody>
+    </table>
+  );
+};
+
+Stats.propTypes = {
+  players: PropTypes.array.isRequired,
+};
+
 // Header Component
 const Header = (props) => {
   return (
     <div className="header">
+    <Stats players = {props.players} />
     <h1>{props.title}</h1>
     </div>
   );
@@ -12,9 +38,10 @@ const Header = (props) => {
 
 Header.propTypes = {
   title: PropTypes.string.isRequired,
+  players: PropTypes.array.isRequired,
 };
-
-// Counter Class Component
+/*
+//Counter Class Component
 class Counter extends Component {
   constructor(props) {
     super(props);
@@ -37,20 +64,25 @@ class Counter extends Component {
   }
 
   render() {
-    return (
-      <div className="counter">
-        <button className="counter-action decrement" onClick={this.decrementScore}> - </button>
-        <div className="counter-score">{this.state.score}</div>
-        <button className="counter-action increment" onClick={this.incrementScore}> + </button>
-      </div>
-    );
+    
   }
 }
+*/
+// Counter Component
+const Counter = (props) => {
+  return (
+    <div className="counter">
+      <button className="counter-action decrement" onClick={function(){props.onChange(-1);}}> - </button>
+      <div className="counter-score">{props.score}</div>
+      <button className="counter-action increment" onClick={function(){props.onChange(1);}}> + </button>
+    </div>
+  );
+};
 Counter.propTypes = {
-  score: PropTypes.number.isRequired
+  score: PropTypes.number.isRequired,
+  onChange: PropTypes.func.isRequired,
 };
 Counter.defaultProps = { score: 0 };
-
 // Player Component
 const Player = (props) => {
   return (
@@ -59,7 +91,7 @@ const Player = (props) => {
         {props.name}
       </div>
       <div className="player-score">
-        <Counter score={props.score} />
+        <Counter score={props.score} onChange={props.onScoreChange} />
       </div>
     </div>
   );
@@ -67,23 +99,60 @@ const Player = (props) => {
 
 Player.propTypes = {
   name: PropTypes.string.isRequired,
-  score: PropTypes.number.isRequired
+  score: PropTypes.number.isRequired,
+  onScoreChange: PropTypes.func.isRequired
 };
 
-const scoreboard = (props) => {
-  return (
-    <div className="scoreboard">
-      <Header title = {props.title}/>
+// Application Component Class 
+class Scoreboard extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      players: this.props.initialPlayers,
+    };
+    this.onScoreChange = this.onScoreChange.bind(this);
+    // this.decrementScore = this.decrementScore.bind(this);
+  };
 
-      <div className="players">
-        <Player name="Md Rahaduzzaman" score={36} />
-        <Player name="Md Mazharul Islam" score={33} />
+  onScoreChange(index, delta) {
+    console.log('onScoreChange: ', index, delta);
+    this.state.players[index].score += delta;
+    this.setState(this.state);
+  }
+
+  render() {
+    return (
+      <div className="scoreboard">
+        <Header title = {this.props.title} players= {this.state.players}/>
+  
+        <div className="players">
+          {
+            this.state.players.map((player, index) => {
+              return(
+                <Player
+                onScoreChange={(delta)=>{this.onScoreChange(index,delta)}} 
+                name={player.name} 
+                score={player.score} 
+                key={player.id} />
+              ); 
+            })
+          }
+        </div>
       </div>
-    </div>
-  )
+    );
+  }
+}
+
+Scoreboard.propTypes = {
+  title: PropTypes.string.isRequired,
+  initialPlayers: PropTypes.arrayOf(PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    score: PropTypes.number.isRequired,
+    id: PropTypes.number.isRequired
+  })).isRequired
 };
 
-scoreboard.defaultProps = {
+Scoreboard.defaultProps = {
   title: "Scoreboard"
 }
-export default scoreboard;
+export default Scoreboard;
