@@ -1,6 +1,47 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
+// AddPlayerForm form component class
+class AddPlayerForm extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      name: "",
+    };
+    this.onNameChange = this.onNameChange.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
+  }
+
+  onSubmit(e) {
+    e.preventDefault();
+    this.props.onAdd(this.state.name);
+    this.setState({name: ""});
+  }
+
+  onNameChange(e) {
+    return(
+      this.setState({
+        name: e.target.value,
+      })
+    );
+  }
+
+  render() {
+    return (
+      <div className="add-player-form">
+        <form onSubmit={this.onSubmit}>
+          <input type="text" value={this.state.name} onChange={this.onNameChange} />
+          <input type="submit" value="Add Player"/>
+        </form>
+      </div>
+    );
+  }
+}
+
+AddPlayerForm.propTypes = {
+  onAdd: PropTypes.func.isRequired
+};
+
 const Stats = (props) => {
   var totalPlayers = props.players.length;
   var totalPoints = props.players.reduce((total, player)=>{
@@ -88,6 +129,7 @@ const Player = (props) => {
   return (
     <div className="player">
       <div className="player-name">
+        <a className="remove-player" onClick={props.onRemove}>X</a>
         {props.name}
       </div>
       <div className="player-score">
@@ -100,9 +142,11 @@ const Player = (props) => {
 Player.propTypes = {
   name: PropTypes.string.isRequired,
   score: PropTypes.number.isRequired,
-  onScoreChange: PropTypes.func.isRequired
+  onScoreChange: PropTypes.func.isRequired,
+  onRemove: PropTypes.func.isRequired
 };
-
+// As three player already loaded while initialyzing the app, let new player id starts with 4
+var nextID = 4;
 // Application Component Class 
 class Scoreboard extends Component {
   constructor(props) {
@@ -111,7 +155,8 @@ class Scoreboard extends Component {
       players: this.props.initialPlayers,
     };
     this.onScoreChange = this.onScoreChange.bind(this);
-    // this.decrementScore = this.decrementScore.bind(this);
+    this.onPlayerAdd = this.onPlayerAdd.bind(this);
+    this.onRemovePlayer = this.onRemovePlayer.bind(this);
   };
 
   onScoreChange(index, delta) {
@@ -119,7 +164,21 @@ class Scoreboard extends Component {
     this.state.players[index].score += delta;
     this.setState(this.state);
   }
-
+  
+  onPlayerAdd(name){
+    console.log('New Player Name: ', name);
+    this.state.players.push({
+      name: name,
+      score: 0,
+      id: nextID
+    });
+    this.setState(this.state);
+    nextID += 1;
+  }
+  onRemovePlayer(index) {
+    this.state.players.splice(index, 1);
+    this.setState(this.state);
+  }
   render() {
     return (
       <div className="scoreboard">
@@ -131,6 +190,7 @@ class Scoreboard extends Component {
               return(
                 <Player
                 onScoreChange={(delta)=>{this.onScoreChange(index,delta)}} 
+                onRemove={()=>{this.onRemovePlayer(index)}} 
                 name={player.name} 
                 score={player.score} 
                 key={player.id} />
@@ -138,6 +198,7 @@ class Scoreboard extends Component {
             })
           }
         </div>
+        <AddPlayerForm onAdd={this.onPlayerAdd} />
       </div>
     );
   }
