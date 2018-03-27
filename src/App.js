@@ -10,7 +10,7 @@ var PLAYERS = [
     id: 1,
   },
   {
-    name: "K. Saddam Hossain",
+    name: "Md Rokunuzzaman",
     score: 35,
     id: 2,
   },

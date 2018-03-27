@@ -1,6 +1,76 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
+
+// As three player already loaded while initialyzing the app, let new player id starts with 4
+var nextID = 4;
+// Stopwatch Component
+class Stopwatch extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      running: false,
+      elapsedTime: 0,
+      previousTime: 0,
+    };
+    this.onStart = this.onStart.bind(this);
+    this.onStop = this.onStop.bind(this);
+    this.onReset = this.onReset.bind(this);
+    this.onTick = this.onTick.bind(this);
+  }
+  componentDidMount() {
+    this.interval = setInterval(
+      () => this.onTick(),
+      100
+    );
+  }
+  componentWillUnmount() {
+    clearInterval(this.interval);
+  }
+  onTick() {
+    if(this.state.running){
+      var now  = Date.now();
+      this.setState({
+        previousTime: now,
+        elapsedTime: this.state.elapsedTime + (now - this.state.previousTime),
+      });
+    }
+    console.log('onTick');
+  }
+  
+  onStart(){
+    this.setState({
+      running: true,
+      previousTime: Date.now(),
+    });
+  }
+  onStop(){
+    this.setState({running: false});
+  }
+  onReset(){
+    this.setState({
+      elapsedTime: 0,
+      previousTime: Date.now(),
+    });
+  }
+  render() {
+    var seconds = Math.floor(this.state.elapsedTime / 1000);
+    return(
+      <div className="stopwatch">
+        <h2>Stopwatch</h2>
+        <div className="stopwatch-time">{seconds}</div>
+        {
+          this.state.running ?
+          <button onClick={this.onStop}>Stop</button>
+          :
+          <button onClick={this.onStart}>Start</button> 
+        }
+        <button onClick={this.onReset}>Reset</button>
+      </div>
+    );
+  }
+}
+
 // AddPlayerForm form component class
 class AddPlayerForm extends Component {
   constructor(props) {
@@ -71,8 +141,9 @@ Stats.propTypes = {
 const Header = (props) => {
   return (
     <div className="header">
-    <Stats players = {props.players} />
-    <h1>{props.title}</h1>
+      <Stats players = {props.players} />
+      <h1>{props.title}</h1>
+      <Stopwatch time={0} />
     </div>
   );
 };
@@ -145,8 +216,7 @@ Player.propTypes = {
   onScoreChange: PropTypes.func.isRequired,
   onRemove: PropTypes.func.isRequired
 };
-// As three player already loaded while initialyzing the app, let new player id starts with 4
-var nextID = 4;
+
 // Application Component Class 
 class Scoreboard extends Component {
   constructor(props) {
